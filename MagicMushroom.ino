@@ -1,6 +1,7 @@
 // #define FAST_SPI_INTERRUPTS_WRITE_PINS 1
 // #define FORCE_SOFTWARE_SPI 1
 #include "FastSPI_LED2.h"
+#include "Color.h"
 #include "MushroomFoot.h"
 
 // #define DEBUG
@@ -53,18 +54,3 @@ void loop()
     }
 }   // loop()
 
-/**
- * Convert separate R,G,B into combined 32-bit GRB
- * @param  byte r Red color
- * @param  byte g Green color
- * @param  byte b Blue color
- * @return struct CRGB
- */
-struct CRGB Color(byte r, byte g, byte b)
-{
-    struct CRGB led;
-    led.r = r;
-    led.g = g;
-    led.b = b;
-    return led;
-};

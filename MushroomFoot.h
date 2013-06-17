@@ -9,10 +9,10 @@
  #include <pins_arduino.h>
 #endif
 
+#include "Color.h"
+
 #define FOOT_STRIP_LENGTH 90
 #define FOOT_NB_STRIP 7
-
-struct CRGB { byte g; byte r; byte b; };
 
 class MushroomFoot {
     public:
