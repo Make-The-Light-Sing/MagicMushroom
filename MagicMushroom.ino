@@ -14,9 +14,10 @@ MushroomFoot              foot;
 
 #define EFFECT_FIRE        1
 #define EFFECT_LIGHTNING   2
+#define EFFECT_COLORCHASE  3
 
 
-byte current_effect = EFFECT_LIGHTNING;
+byte current_effect = EFFECT_COLORCHASE;
 
 /**
  * Initialisation
@@ -45,6 +46,7 @@ void loop()
     {
         case EFFECT_FIRE : fire(); break;
         case EFFECT_LIGHTNING : lightning(); break;
+        case EFFECT_COLORCHASE : colorChase(Color(0, 0, 127)); break;
     }
 }   // loop()
 
@@ -57,6 +59,9 @@ int getInterval()
     return 0;
 }
 
+/**
+ * Burn the strips of the mushroom's foot
+ */
 void fire()
 {
     byte fire[FOOT_NB_STRIP][FOOT_STRIP_LENGTH];
@@ -71,7 +76,8 @@ void fire()
             {
                 fire[x][y] = ((fire[x][y - 1] + fire[x][(y - 2) % FOOT_STRIP_LENGTH]) * (FOOT_STRIP_LENGTH / 2)) / (FOOT_STRIP_LENGTH * 1.045);
             }
-            for(int y=0; y < FOOT_STRIP_LENGTH; y++) {
+            for(int y=0; y < FOOT_STRIP_LENGTH; y++)
+            {
                 foot.setPixelColor(x, y, getFireColorFromPalette(fire[x][y]));
             }
         }
@@ -80,6 +86,9 @@ void fire()
     }
 }
 
+/**
+ * Fast light up one strip of the foot
+ */
 void lightning()
 {
     byte x;
@@ -97,4 +106,25 @@ void lightning()
         LED.showRGB((byte*)leds, NUM_LEDS);
         delay(random(0, 100));
     }
+}
+
+
+// Chase a dot down the strip
+// good for testing purposes
+void colorChase(struct CRGB color)
+{
+    // turn off leds :
+    memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
+    
+    for(int x = 0; x < FOOT_NB_STRIP; x++)
+    {
+        for(int y=0; y < FOOT_STRIP_LENGTH; y++)
+        {
+            foot.setPixelColor(x, y, color); // set one pixel
+            LED.showRGB((byte*)leds, NUM_LEDS);
+            delay(getInterval());
+            foot.setPixelColor(x, y, Color(0, 0, 0)); // erase pixel (but don't refresh yet)
+        }
+    }
+    LED.showRGB((byte*)leds, NUM_LEDS);
 }
