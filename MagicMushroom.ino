@@ -12,10 +12,11 @@ struct CRGB               leds[NUM_LEDS];
 TM1809Controller800Mhz<6> LED;
 MushroomFoot              foot;
 
-#define EFFECT_FIRE 1
+#define EFFECT_FIRE        1
+#define EFFECT_LIGHTNING   2
 
 
-byte current_effect = EFFECT_FIRE;
+byte current_effect = EFFECT_LIGHTNING;
 
 /**
  * Initialisation
@@ -43,6 +44,7 @@ void loop()
     switch(current_effect)
     {
         case EFFECT_FIRE : fire(); break;
+        case EFFECT_LIGHTNING : lightning(); break;
     }
 }   // loop()
 
@@ -78,3 +80,21 @@ void fire()
     }
 }
 
+void lightning()
+{
+    byte x;
+    while(current_effect == EFFECT_LIGHTNING)
+    {
+        x = random(0, FOOT_NB_STRIP);
+        for(int y=0; y < FOOT_STRIP_LENGTH; y++) {
+            foot.setPixelColor(x, y, Color(255, 255, 255));
+        }
+        LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(5);
+        for(int y=0; y < FOOT_STRIP_LENGTH; y++) {
+            foot.setPixelColor(x, y, Color(0, 0, 0));
+        }
+        LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(random(0, 100));
+    }
+}
