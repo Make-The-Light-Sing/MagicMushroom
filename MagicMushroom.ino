@@ -5,19 +5,17 @@
 #include "MushroomFoot.h"
 
 // #define DEBUG
-#ifdef DEBUG
-    #define DPRINT Serial.print
-    #define DPRINTLN Serial.println
-#else
-    #define DPRINT(x)
-    #define DPRINTLN(x)
-#endif
 
-#define NUM_LEDS 630
+#define NUM_LEDS FOOT_NB_STRIP * FOOT_STRIP_LENGTH
 
 struct CRGB               leds[NUM_LEDS];
 TM1809Controller800Mhz<6> LED;
 MushroomFoot              foot;
+
+#define EFFECT_FIRE 1
+
+
+byte current_effect = EFFECT_FIRE;
 
 /**
  * Initialisation
@@ -42,15 +40,41 @@ void setup()
  */
 void loop()
 { 
-    for(int x = 0; x < FOOT_NB_STRIP; x++)
+    switch(current_effect)
     {
-        for(int y = 0; y < FOOT_STRIP_LENGTH; y++)
-        {
-            foot.setPixelColor(x, y, Color(127, 0, 0));
-            LED.showRGB((byte*)leds, NUM_LEDS);
-            delay(20);
-            foot.setPixelColor(x, y, Color(0, 0, 0));
-        }
+        case EFFECT_FIRE : fire(); break;
     }
 }   // loop()
+
+/**
+ * Define speed of effects
+ */
+int getInterval()
+{
+//    return analogRead(A0) / 4;
+    return 0;
+}
+
+void fire()
+{
+    byte fire[FOOT_NB_STRIP][FOOT_STRIP_LENGTH];
+    memset(fire, 0, NUM_LEDS);
+    while(current_effect == EFFECT_FIRE)
+    {
+        for(int x = 0; x < FOOT_NB_STRIP; x++)
+        {
+            fire[x][0] = random(255);
+            
+            for(int y = (FOOT_STRIP_LENGTH - 1); y > 0; y--)
+            {
+                fire[x][y] = ((fire[x][y - 1] + fire[x][(y - 2) % FOOT_STRIP_LENGTH]) * (FOOT_STRIP_LENGTH / 2)) / (FOOT_STRIP_LENGTH * 1.045);
+            }
+            for(int y=0; y < FOOT_STRIP_LENGTH; y++) {
+                foot.setPixelColor(x, y, getFireColorFromPalette(fire[x][y]));
+            }
+        }
+        LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(getInterval());
+    }
+}
 
