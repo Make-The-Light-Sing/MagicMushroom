@@ -82,7 +82,7 @@ struct CRGB getColor()
  */
 void timeredDisplay()
 {
-    current_effect = analogRead(A0) / (1024 / NB_EFFECTS);
+    current_effect = (analogRead(A0) / (1024 / NB_EFFECTS)) % NB_EFFECTS;
 }
 
 /**
@@ -118,6 +118,7 @@ void fire()
 void lightning()
 {
     byte x;
+    foot.turnOff();
     while(current_effect == EFFECT_LIGHTNING)
     {
         x = random(0, FOOT_NB_STRIP);
@@ -142,7 +143,7 @@ void lightning()
 void colorChase()
 {
     // turn off leds :
-    memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
+    foot.turnOff();
     
     for(int x = 0; x < FOOT_NB_STRIP; x++)
     {
