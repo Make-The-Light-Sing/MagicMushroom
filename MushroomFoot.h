@@ -18,6 +18,7 @@ class MushroomFoot {
     public:
         MushroomFoot();
         void setPixelColor(byte pos_x, byte pos_y, struct CRGB c);
+        void setPixelColor(int index, struct CRGB c);
         void setPixels(struct CRGB * p);
         void turnOff();
     private:

@@ -52,6 +52,19 @@ void MushroomFoot::setPixelColor(byte pos_x, byte pos_y, struct CRGB c)
 }
 
 /**
+ * Set color of a pixel
+ * @param int         Index
+ * @param struct CRGB color
+ */
+void MushroomFoot::setPixelColor(int index, struct CRGB c)
+{
+    index = index % (FOOT_NB_STRIP * FOOT_STRIP_LENGTH);
+    pixels[index].r = c.r;
+    pixels[index].g = c.g;
+    pixels[index].b = c.b;
+}
+
+/**
  * Turn off all leds
  */
 void MushroomFoot::turnOff()

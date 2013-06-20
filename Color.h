@@ -15,7 +15,8 @@ struct CRGB { byte b; byte r; byte g; };
 struct CRGB 
     Color(byte r, byte g, byte b),
     HSL(float H, float S, float L),
-    getFireColorFromPalette(byte x);
+    getFireColorFromPalette(byte x),
+    Wheel(uint16_t WheelPos);
 float
     Hue_2_RGB( float v1, float v2, float vH );
 

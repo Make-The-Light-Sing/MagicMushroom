@@ -13,11 +13,13 @@ struct CRGB               leds[NUM_LEDS];
 TM1809Controller800Mhz<6> LED;
 MushroomFoot              foot;
 
-#define EFFECT_FIRE        1
-#define EFFECT_LIGHTNING   2
-#define EFFECT_COLORCHASE  3
+#define EFFECT_FIRE        0
+#define EFFECT_LIGHTNING   1
+#define EFFECT_COLORCHASE  2
+#define EFFECT_RAINBOW1    3
+#define EFFECT_RAINBOW2    4
 
-#define NB_EFFECTS 3
+#define NB_EFFECTS 5
 
 
 byte current_effect = EFFECT_COLORCHASE;
@@ -53,6 +55,8 @@ void loop()
         case EFFECT_FIRE : fire(); break;
         case EFFECT_LIGHTNING : lightning(); break;
         case EFFECT_COLORCHASE : colorChase(); break;
+        case EFFECT_RAINBOW1 : rainbowCycle1(); break;
+        case EFFECT_RAINBOW2 : rainbowCycle2(); break;
     }
 }   // loop()
 
@@ -142,27 +146,83 @@ void lightning()
  */
 void colorChase()
 {
-    // turn off leds :
+    uint16_t i;
     foot.turnOff();
-    
-    for(int x = 0; x < FOOT_NB_STRIP; x++)
+    for (i=0; i < NUM_LEDS; i++)
     {
-        for(int y=0; y < FOOT_STRIP_LENGTH; y++)
+        foot.setPixelColor(i, getColor()); // set one pixel
+        LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(getInterval());
+        foot.setPixelColor(i, Color(0, 0, 0)); // erase pixel (but don't refresh yet)
+        
+        // If effect have changed, then exit
+        if (current_effect != EFFECT_COLORCHASE)
         {
-            foot.setPixelColor(x, y, getColor()); // set one pixel
             LED.showRGB((byte*)leds, NUM_LEDS);
-            delay(getInterval());
-            foot.setPixelColor(x, y, Color(0, 0, 0)); // erase pixel (but don't refresh yet)
-            
-            // If effect have changed, then exit
-            if (current_effect != EFFECT_COLORCHASE)
-            {
-                LED.showRGB((byte*)leds, NUM_LEDS);
-                return;
-            }
+            return;
         }
     }
     LED.showRGB((byte*)leds, NUM_LEDS);
+}
+
+/**
+ * Rainbow with each strip synchronised
+ */
+void rainbowCycle1()
+{
+    uint16_t i, j;
+    byte x;
+    for (j=0; j < 384; j++)
+    {     // 5 cycles of all 384 colors in the wheel
+//        for (i=0; i < NUM_LEDS; i++)
+        for (i=0; i < FOOT_STRIP_LENGTH; i++)
+        {
+            // tricky math! we use each pixel as a fraction of the full 384-color
+            // wheel (thats the i / strip.numPixels() part)
+            // Then add in j which makes the colors go around per pixel
+            // the % 384 is to make the wheel cycle around
+//            foot.setPixelColor(i, Wheel(((i * 384 / NUM_LEDS) + j) % 384));
+           for(x =0; x < FOOT_NB_STRIP; x++)
+           {
+               foot.setPixelColor(x, i, Wheel(((i * 384 / FOOT_STRIP_LENGTH) + j) % 384));
+           } 
+//            foot.setPixelColor(i, Wheel((i * 10 + j * 8) % 384));
+        }
+        LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(getInterval());
+        
+        // If effect have changed, then exit
+        if (current_effect != EFFECT_RAINBOW1)
+        {
+            return;
+        }
+    }
+}
+
+void rainbowCycle2()
+{
+    uint16_t i, j;
+    byte x;
+    for (j=0; j < 384; j++)
+    {     // 5 cycles of all 384 colors in the wheel
+        for (i=0; i < NUM_LEDS; i++)
+        {
+            // tricky math! we use each pixel as a fraction of the full 384-color
+            // wheel (thats the i / strip.numPixels() part)
+            // Then add in j which makes the colors go around per pixel
+            // the % 384 is to make the wheel cycle around
+//            foot.setPixelColor(i, Wheel(((i * 384 / NUM_LEDS) + j) % 384));
+            foot.setPixelColor(i, Wheel((i * 10 + j * 8) % 384));
+        }
+        LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(getInterval());
+        
+        // If effect have changed, then exit
+        if (current_effect != EFFECT_RAINBOW2)
+        {
+            return;
+        }
+    }
 }
 
 
