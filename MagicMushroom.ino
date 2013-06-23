@@ -1,11 +1,13 @@
 // #define FAST_SPI_INTERRUPTS_WRITE_PINS 1
 // #define FORCE_SOFTWARE_SPI 1
 #include <TimerOne.h>
+#include <Wire.h>
 #include "FastSPI_LED2.h"
 #include "Color.h"
 #include "MushroomFoot.h"
 
 // #define DEBUG
+#define I2C_HEADER 1
 
 #define NUM_LEDS FOOT_NB_STRIP * FOOT_STRIP_LENGTH
 
@@ -21,8 +23,8 @@ MushroomFoot              foot;
 
 #define NB_EFFECTS 5
 
-
 byte current_effect = EFFECT_COLORCHASE;
+
 
 /**
  * Initialisation
@@ -34,6 +36,7 @@ void setup()
         Serial.println("resetting!");
     #endif
     
+    Wire.begin();
     Timer1.initialize(10000);
     Timer1.attachInterrupt( timeredDisplay ); // attach the service routine here
     
@@ -50,6 +53,11 @@ void setup()
  */
 void loop()
 { 
+    Wire.beginTransmission(I2C_HEADER);    // transmit to device #4
+    Wire.write(current_effect);   // sends five bytes
+    Wire.write(getInterval());
+    Wire.endTransmission();    // stop transmitting
+    
     switch(current_effect)
     {
         case EFFECT_FIRE : fire(); break;
@@ -65,8 +73,7 @@ void loop()
  */
 int getInterval()
 {
-//    return analogRead(A4) / 4;
-    return 0;
+    return analogRead(A4) / 4;
 }
 
 /**
