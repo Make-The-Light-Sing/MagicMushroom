@@ -42,9 +42,9 @@ void MushroomHead::setPixelColor(byte pos_x, byte pos_y, struct CRGB c)
     int delta = 0;
     switch(x)
     {
-        case 3 : delta += HEAD_ROW3;
-        case 2 : delta += HEAD_ROW2;
-        case 1 : delta += HEAD_ROW1;
+        case 3 : delta += HEAD_ROW2;
+        case 2 : delta += HEAD_ROW1;
+        case 1 : delta += HEAD_ROW0;
     }
     
     // One strip of two is plug reversed
@@ -87,5 +87,6 @@ void MushroomHead::setPixelColor(int index, struct CRGB c)
  */
 void MushroomHead::turnOff()
 {
-    memset(pixels, 0, HEAD_NB_LED * sizeof(struct CRGB));
+    memset(pixels, 0, 702 * sizeof(struct CRGB));
+//    memset(pixels, 0, HEAD_NB_LED * sizeof(struct CRGB));
 }

@@ -19,7 +19,8 @@
 #define HEAD_ROW2   162
 #define HEAD_ROW3   123
 
-#define HEAD_NB_LED HEAD_ROW0 + HEAD_ROW1 + HEAD_ROW2 + HEAD_ROW3
+//#define HEAD_NB_LED HEAD_ROW0 + HEAD_ROW1 + HEAD_ROW2 + HEAD_ROW3
+#define HEAD_NB_LED 702
 #define HEAD_NB_ROW 4
 
 class MushroomHead {

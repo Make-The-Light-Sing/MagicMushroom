@@ -1,19 +1,27 @@
 // #define FAST_SPI_INTERRUPTS_WRITE_PINS 1
 // #define FORCE_SOFTWARE_SPI 1
-#include <TimerOne.h>
 #include <Wire.h>
-#include "FastSPI_LED2.h"
+// #include <TimerOne.h>
+#include <FastSPI_LED2.h>
 #include "Color.h"
 #include "MushroomFoot.h"
+#include "ExternalControl.h"
 
 // #define DEBUG
 #define I2C_HEADER 1
 
 #define NUM_LEDS FOOT_NB_STRIP * FOOT_STRIP_LENGTH
 
-struct CRGB               leds[NUM_LEDS];
-TM1809Controller800Mhz<6> LED;
-MushroomFoot              foot;
+struct CRGB                leds[NUM_LEDS];
+TM1809Controller800Mhz<6>  LED;
+MushroomFoot               foot;
+ExternalControl            ext;
+
+#define PIN_COLOR_RED      A1
+#define PIN_COLOR_GREEN    A2
+#define PIN_COLOR_BLUE     A3
+#define PIN_SPEED          A4
+#define PIN_LIGHTNESS      A5
 
 #define EFFECT_FIRE        0
 #define EFFECT_LIGHTNING   1
@@ -21,10 +29,12 @@ MushroomFoot              foot;
 #define EFFECT_RAINBOW1    3
 #define EFFECT_RAINBOW2    4
 
-#define NB_EFFECTS 5
+#define NB_EFFECTS         5
+#define SLAVE              1
 
-byte current_effect = EFFECT_COLORCHASE;
 
+long previousMillis = 0;
+long interval = 500;
 
 /**
  * Initialisation
@@ -36,15 +46,25 @@ void setup()
         Serial.println("resetting!");
     #endif
     
+//    Timer1.initialize(10000);
+//    Timer1.attachInterrupt( timeredDisplay ); // attach the service routine here
+    
     Wire.begin();
-    Timer1.initialize(10000);
-    Timer1.attachInterrupt( timeredDisplay ); // attach the service routine here
     
     LED.init();
     memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
     LED.showRGB((byte*)leds, NUM_LEDS);
-    
     foot.setPixels(leds);
+    
+    ext.initialize(NB_EFFECTS, SLAVE);
+    
+    pinMode(PIN_EFFECT, INPUT);
+    pinMode(PIN_COLOR_RED, INPUT);
+    pinMode(PIN_COLOR_GREEN, INPUT);
+    pinMode(PIN_COLOR_BLUE, INPUT);
+    pinMode(PIN_SPEED, INPUT);
+    pinMode(PIN_LIGHTNESS, INPUT);
+    
     delay(20);
 }
 
@@ -53,12 +73,7 @@ void setup()
  */
 void loop()
 { 
-    Wire.beginTransmission(I2C_HEADER);    // transmit to device #4
-    Wire.write(current_effect);   // sends five bytes
-    Wire.write(getInterval());
-    Wire.endTransmission();    // stop transmitting
-    
-    switch(current_effect)
+    switch(ext.getEffect())
     {
         case EFFECT_FIRE : fire(); break;
         case EFFECT_LIGHTNING : lightning(); break;
@@ -73,7 +88,7 @@ void loop()
  */
 int getInterval()
 {
-    return analogRead(A4) / 4;
+    return analogRead(PIN_SPEED) / 4;
 }
 
 /**
@@ -81,20 +96,24 @@ int getInterval()
  */
 struct CRGB getColor()
 {
-    return Color(
-        analogRead(A1) / 4,
-        analogRead(A2) / 4,
-        analogRead(A3) / 4
-    );
+    byte red   = analogRead(PIN_COLOR_RED) / 4;
+    byte green = analogRead(PIN_COLOR_GREEN) / 4;
+    byte blue  = analogRead(PIN_COLOR_BLUE) / 4;
+    return Color(red, green, blue);
 }
 
 /**
  * Change effect
  */
-void timeredDisplay()
+/*void timeredDisplay()
 {
-    current_effect = (analogRead(A0) / (1024 / NB_EFFECTS)) % NB_EFFECTS;
-}
+    byte        effect = (analogRead(PIN_EFFECT) / (1024 / NB_EFFECTS)) % NB_EFFECTS;
+    struct CRGB color  = Color(
+        analogRead(PIN_COLOR_RED) / 4,
+        analogRead(PIN_COLOR_GREEN) / 4,
+        analogRead(PIN_COLOR_BLUE) / 4,
+    );
+} */
 
 /**
  * Burn the strips of the mushroom's foot
