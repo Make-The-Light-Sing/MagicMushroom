@@ -1,7 +1,6 @@
 // #define FAST_SPI_INTERRUPTS_WRITE_PINS 1
 // #define FORCE_SOFTWARE_SPI 1
 #include <Wire.h>
-// #include <TimerOne.h>
 #include <FastSPI_LED2.h>
 #include "Color.h"
 #include "MushroomFoot.h"
@@ -17,11 +16,6 @@ TM1809Controller800Mhz<6>  LED;
 MushroomFoot               foot;
 ExternalControl            ext;
 
-#define PIN_COLOR_RED      A1
-#define PIN_COLOR_GREEN    A2
-#define PIN_COLOR_BLUE     A3
-#define PIN_SPEED          A4
-#define PIN_LIGHTNESS      A5
 
 #define EFFECT_FIRE        0
 #define EFFECT_LIGHTNING   1
@@ -46,9 +40,6 @@ void setup()
         Serial.println("resetting!");
     #endif
     
-//    Timer1.initialize(10000);
-//    Timer1.attachInterrupt( timeredDisplay ); // attach the service routine here
-    
     Wire.begin();
     
     LED.init();
@@ -57,13 +48,6 @@ void setup()
     foot.setPixels(leds);
     
     ext.initialize(NB_EFFECTS, SLAVE);
-    
-    pinMode(PIN_EFFECT, INPUT);
-    pinMode(PIN_COLOR_RED, INPUT);
-    pinMode(PIN_COLOR_GREEN, INPUT);
-    pinMode(PIN_COLOR_BLUE, INPUT);
-    pinMode(PIN_SPEED, INPUT);
-    pinMode(PIN_LIGHTNESS, INPUT);
     
     delay(20);
 }
@@ -82,38 +66,6 @@ void loop()
         case EFFECT_RAINBOW2 : rainbowCycle2(); break;
     }
 }   // loop()
-
-/**
- * Define speed of effects
- */
-int getInterval()
-{
-    return analogRead(PIN_SPEED) / 4;
-}
-
-/**
- * Get color from analog inputs
- */
-struct CRGB getColor()
-{
-    byte red   = analogRead(PIN_COLOR_RED) / 4;
-    byte green = analogRead(PIN_COLOR_GREEN) / 4;
-    byte blue  = analogRead(PIN_COLOR_BLUE) / 4;
-    return Color(red, green, blue);
-}
-
-/**
- * Change effect
- */
-/*void timeredDisplay()
-{
-    byte        effect = (analogRead(PIN_EFFECT) / (1024 / NB_EFFECTS)) % NB_EFFECTS;
-    struct CRGB color  = Color(
-        analogRead(PIN_COLOR_RED) / 4,
-        analogRead(PIN_COLOR_GREEN) / 4,
-        analogRead(PIN_COLOR_BLUE) / 4,
-    );
-} */
 
 /**
  * Burn the strips of the mushroom's foot
@@ -138,7 +90,6 @@ void fire()
             }
         }
         LED.showRGB((byte*)leds, NUM_LEDS);
-        delay(getInterval());
     }
 }
 
@@ -154,7 +105,8 @@ void lightning()
         x = random(0, FOOT_NB_STRIP);
         for(int y=0; y < FOOT_STRIP_LENGTH; y++)
         {
-            foot.setPixelColor(x, y, getColor());
+//            foot.setPixelColor(x, y, Color(255, 255, 255));
+            foot.setPixelColor(x, y, ext.getColor());
         }
         LED.showRGB((byte*)leds, NUM_LEDS);
         delay(5);
@@ -176,9 +128,9 @@ void colorChase()
     foot.turnOff();
     for (i=0; i < NUM_LEDS; i++)
     {
-        foot.setPixelColor(i, getColor()); // set one pixel
+        foot.setPixelColor(i, ext.getColor()); // set one pixel
         LED.showRGB((byte*)leds, NUM_LEDS);
-        delay(getInterval());
+        delay(ext.getInterval() / 4);
         foot.setPixelColor(i, Color(0, 0, 0)); // erase pixel (but don't refresh yet)
         
         // If effect have changed, then exit
@@ -200,7 +152,6 @@ void rainbowCycle1()
     byte x;
     for (j=0; j < 384; j++)
     {     // 5 cycles of all 384 colors in the wheel
-//        for (i=0; i < NUM_LEDS; i++)
         for (i=0; i < FOOT_STRIP_LENGTH; i++)
         {
             // tricky math! we use each pixel as a fraction of the full 384-color
@@ -212,10 +163,9 @@ void rainbowCycle1()
            {
                foot.setPixelColor(x, i, Wheel(((i * 384 / FOOT_STRIP_LENGTH) + j) % 384));
            } 
-//            foot.setPixelColor(i, Wheel((i * 10 + j * 8) % 384));
         }
         LED.showRGB((byte*)leds, NUM_LEDS);
-        delay(getInterval());
+        delay(ext.getInterval() / 4);
         
         // If effect have changed, then exit
         if (ext.getEffect() != EFFECT_RAINBOW1)
@@ -241,7 +191,7 @@ void rainbowCycle2()
             foot.setPixelColor(i, Wheel((i * 10 + j * 8) % 384));
         }
         LED.showRGB((byte*)leds, NUM_LEDS);
-        delay(getInterval());
+        delay(ext.getInterval() / 4);
         
         // If effect have changed, then exit
         if (ext.getEffect() != EFFECT_RAINBOW2)

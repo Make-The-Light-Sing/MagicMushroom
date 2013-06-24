@@ -23,6 +23,8 @@ MushroomHead               head;
 #define SLAVE              1
 
 byte current_effect = 0;
+int  interval       = 0;
+int  color          = 0;
 
 void setup()
 {
@@ -63,15 +65,8 @@ void loop()
 void receiveEvent(int howMany)
 {
     current_effect = Wire.read(); // receive byte as a character
-}
-
-/**
- * Define speed of effects
- */
-int getInterval()
-{
-//    return analogRead(A4) / 4;
-    return 0;
+    interval       = Wire.read();
+    color          = Wire.read();
 }
 
 /**
@@ -79,12 +74,12 @@ int getInterval()
  */
 struct CRGB getColor()
 {
-//    return Color(255, 255, 255);
-    return Color(
-        analogRead(A1) / 4,
-        analogRead(A2) / 4,
-        analogRead(A3) / 4
-    );
+    return Wheel(color);
+}
+
+int getInterval()
+{
+    return interval;
 }
 
 /**
@@ -137,7 +132,7 @@ void rainbowCycle1()
 //            foot.setPixelColor(i, Wheel((i * 10 + j * 8) % 384));
         }
         LED.showRGB((byte*)leds, NUM_LEDS);
-        delay(getInterval());
+        delay(getInterval() / 4);
         
         // If effect have changed, then exit
         if (current_effect != EFFECT_RAINBOW1)
@@ -164,7 +159,7 @@ void rainbowCycle2()
             head.setPixelColor(i, Wheel((i * 10 + j * 8) % 384));
         }
         LED.showRGB((byte*)leds, NUM_LEDS);
-        delay(getInterval());
+        delay(getInterval() / 4);
         
         // If effect have changed, then exit
         if (current_effect != EFFECT_RAINBOW2)
