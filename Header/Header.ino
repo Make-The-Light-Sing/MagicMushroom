@@ -5,26 +5,26 @@
 #include "MushroomHead.h"
 
 #define I2C_HEADER 1
-#define DEBUG
+//#define DEBUG
 
-#define NUM_LEDS HEAD_NB_LED
-
-struct CRGB                leds[NUM_LEDS];
-TM1809Controller800Mhz<6>  LED;
-MushroomHead               head;
+#define NUM_LEDS           HEAD_NB_LED
 
 #define EFFECT_FIRE        0
 #define EFFECT_LIGHTNING   1
 #define EFFECT_COLORCHASE  2
 #define EFFECT_RAINBOW1    3
 #define EFFECT_RAINBOW2    4
+#define EFFECT_FALLING     5
 
-#define NB_EFFECTS         5
+#define NB_EFFECTS         6
 #define SLAVE              1
 
-byte current_effect = 0;
-int  interval       = 0;
-int  color          = 0;
+struct CRGB                leds[NUM_LEDS];
+TM1809Controller800Mhz<6>  LED;
+MushroomHead               head;
+byte                       current_effect = 0;
+int                        interval       = 0;
+int                        color          = 0;
 
 void setup()
 {
@@ -33,9 +33,6 @@ void setup()
         Serial.println("Resetting Header!");
     #endif
     
-//    Timer1.initialize(10000);
-//    Timer1.attachInterrupt( timeredDisplay ); // attach the service routine here
-
     Wire.begin(SLAVE);
     Wire.onReceive(receiveEvent);
 
@@ -51,22 +48,45 @@ void loop()
 {
     switch(current_effect)
     {
-        case EFFECT_FIRE : // fire(); break;
-        case EFFECT_LIGHTNING : lightning(); break;
+        case EFFECT_FIRE       : // fire();       break;
+        case EFFECT_LIGHTNING  : lightning();     break;
         case EFFECT_COLORCHASE : // colorChase(); break;
-        case EFFECT_RAINBOW1 : rainbowCycle1(); break;
-        case EFFECT_RAINBOW2 : rainbowCycle2(); break;
+        case EFFECT_RAINBOW1   : rainbowCycle1(); break;
+        case EFFECT_RAINBOW2   : rainbowCycle2(); break;
+        case EFFECT_FALLING    : falling();       break;
     }
-    
 }
 
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany)
 {
-    current_effect = Wire.read(); // receive byte as a character
-    interval       = Wire.read();
-    color          = Wire.read();
+    char c;
+    while(1 < Wire.available()) // loop through all but the last
+    {
+        char c = Wire.read();
+        #ifdef DEBUG
+            Serial.print(c);
+        #endif
+        switch(c)
+        {
+            case 'E' : current_effect = Wire.read() | (Wire.read() << 8);
+                    #ifdef DEBUG
+                        Serial.println(current_effect);
+                    #endif
+                    break;
+            case 'I' : interval       = Wire.read() | (Wire.read() << 8);
+                    #ifdef DEBUG
+                        Serial.println(interval);
+                    #endif
+                    break;
+            case 'C' : color          = Wire.read() | (Wire.read() << 8);
+                    #ifdef DEBUG
+                        Serial.println(color);
+                    #endif
+                    break;
+        }
+    }
 }
 
 /**
@@ -165,6 +185,37 @@ void rainbowCycle2()
         if (current_effect != EFFECT_RAINBOW2)
         {
             return;
+        }
+    }
+}
+
+void falling()
+{
+    int x, i;
+    uint16_t y;
+    struct CRGB color;
+    head.turnOff();    
+    for(x = HEAD_NB_ROW - 1; x >= 0; x--)
+    {
+        for(i = 16; i > 0; i--)
+        {
+            color.r = getColor().r * i / 16;
+            color.g = getColor().g * i / 16;
+            color.b = getColor().b * i / 16;
+            for (y = 0; y < head.getRowLength(x); y++)
+            {
+                head.setPixelColor(x, y, color);
+            }
+            LED.showRGB((byte*)leds, NUM_LEDS);
+            delay(getInterval() / 4);
+            for (y = 0; y < head.getRowLength(x); y++)
+            {
+                head.setPixelColor(x, y, Color(0,0,0));
+            }
+            if (current_effect != EFFECT_FALLING)
+            {
+                return;
+            }
         }
     }
 }

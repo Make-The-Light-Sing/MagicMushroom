@@ -7,28 +7,24 @@
 #include "ExternalControl.h"
 
 // #define DEBUG
-#define I2C_HEADER 1
+#define I2C_HEADER         1
 
-#define NUM_LEDS FOOT_NB_STRIP * FOOT_STRIP_LENGTH
-
-struct CRGB                leds[NUM_LEDS];
-TM1809Controller800Mhz<6>  LED;
-MushroomFoot               foot;
-ExternalControl            ext;
-
+#define NUM_LEDS           FOOT_NB_STRIP * FOOT_STRIP_LENGTH
 
 #define EFFECT_FIRE        0
 #define EFFECT_LIGHTNING   1
 #define EFFECT_COLORCHASE  2
 #define EFFECT_RAINBOW1    3
 #define EFFECT_RAINBOW2    4
+#define EFFECT_FALLING     5
 
-#define NB_EFFECTS         5
+#define NB_EFFECTS         6
 #define SLAVE              1
 
-
-long previousMillis = 0;
-long interval = 500;
+struct CRGB                leds[NUM_LEDS];
+TM1809Controller800Mhz<6>  LED;
+MushroomFoot               foot;
+ExternalControl            ext;
 
 /**
  * Initialisation
@@ -59,11 +55,12 @@ void loop()
 { 
     switch(ext.getEffect())
     {
-        case EFFECT_FIRE : fire(); break;
-        case EFFECT_LIGHTNING : lightning(); break;
-        case EFFECT_COLORCHASE : colorChase(); break;
-        case EFFECT_RAINBOW1 : rainbowCycle1(); break;
-        case EFFECT_RAINBOW2 : rainbowCycle2(); break;
+        case EFFECT_FIRE       : fire();          break;
+        case EFFECT_LIGHTNING  : lightning();     break;
+        case EFFECT_COLORCHASE : colorChase();    break;
+        case EFFECT_RAINBOW1   : rainbowCycle1(); break;
+        case EFFECT_RAINBOW2   : rainbowCycle2(); break;
+        case EFFECT_FALLING    : falling();       break;
     }
 }   // loop()
 
@@ -201,4 +198,33 @@ void rainbowCycle2()
     }
 }
 
-
+void falling()
+{
+    uint16_t x, y, i;
+    foot.turnOff();
+    for(i = 0; i < FOOT_STRIP_LENGTH; i++)
+    {
+        for(y = FOOT_STRIP_LENGTH - 1; y > i; y--)
+        {
+            for(x =0; x < FOOT_NB_STRIP; x++)
+            {
+                foot.setPixelColor(x, y, ext.getColor());
+            }
+            LED.showRGB((byte*)leds, NUM_LEDS);
+            delay(ext.getInterval() / 4);
+            for(x =0; x < FOOT_NB_STRIP; x++)
+            {
+                foot.setPixelColor(x, y, Color(0, 0, 0));
+            }
+            if (ext.getEffect() != EFFECT_FALLING)
+            {
+                return;
+            }
+        }
+        for(x =0; x < FOOT_NB_STRIP; x++)
+        {
+            foot.setPixelColor(x, i, ext.getColor());
+        }
+        LED.showRGB((byte*)leds, NUM_LEDS);
+    }
+}

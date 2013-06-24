@@ -25,7 +25,7 @@ class ExternalControl {
             if (new_effect != effect)
             {
                 effect = new_effect;
-                transmitData();
+                transmitData('E', (int) effect);
             }
             return effect;
         };
@@ -35,7 +35,7 @@ class ExternalControl {
             if (new_interval != interval)
             {
                 interval = new_interval;
-                transmitData();
+                transmitData('I', (int) interval);
             }
             return interval;
         };
@@ -45,24 +45,27 @@ class ExternalControl {
             if (new_color != color)
             {
                 color = new_color;
-                transmitData();
+                transmitData('C', color);
             }
             return Wheel(color);
-        }
+        };
+        void transmitData(char c, int value)
+        {
+            int mask = 0xFF;
+            byte toSend;
+            Wire.beginTransmission(slave);
+            Wire.write(c);
+            // sent int in 2 bytes
+            Wire.write(value & mask);
+            Wire.write(value >> 8);
+            Wire.endTransmission();
+        };
     private:
         byte slave;
         byte nb_effects;
         byte effect;
         int  interval;
         int  color;
-        void transmitData()
-        {
-            Wire.beginTransmission(slave);
-            Wire.write(effect);
-            Wire.write(interval);
-            Wire.write(color);
-            Wire.endTransmission();
-        };
 };
 
 #endif
