@@ -122,7 +122,7 @@ void fire()
 {
     byte fire[FOOT_NB_STRIP][FOOT_STRIP_LENGTH];
     memset(fire, 0, NUM_LEDS);
-    while(current_effect == EFFECT_FIRE)
+    while(ext.getEffect() == EFFECT_FIRE)
     {
         for(int x = 0; x < FOOT_NB_STRIP; x++)
         {
@@ -149,7 +149,7 @@ void lightning()
 {
     byte x;
     foot.turnOff();
-    while(current_effect == EFFECT_LIGHTNING)
+    while(ext.getEffect() == EFFECT_LIGHTNING)
     {
         x = random(0, FOOT_NB_STRIP);
         for(int y=0; y < FOOT_STRIP_LENGTH; y++)
@@ -182,7 +182,7 @@ void colorChase()
         foot.setPixelColor(i, Color(0, 0, 0)); // erase pixel (but don't refresh yet)
         
         // If effect have changed, then exit
-        if (current_effect != EFFECT_COLORCHASE)
+        if (ext.getEffect() != EFFECT_COLORCHASE)
         {
             LED.showRGB((byte*)leds, NUM_LEDS);
             return;
@@ -218,7 +218,7 @@ void rainbowCycle1()
         delay(getInterval());
         
         // If effect have changed, then exit
-        if (current_effect != EFFECT_RAINBOW1)
+        if (ext.getEffect() != EFFECT_RAINBOW1)
         {
             return;
         }
@@ -244,7 +244,7 @@ void rainbowCycle2()
         delay(getInterval());
         
         // If effect have changed, then exit
-        if (current_effect != EFFECT_RAINBOW2)
+        if (ext.getEffect() != EFFECT_RAINBOW2)
         {
             return;
         }

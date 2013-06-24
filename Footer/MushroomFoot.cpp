@@ -32,7 +32,7 @@ void MushroomFoot::setPixelColor(byte pos_x, byte pos_y, struct CRGB c)
     // One strip of two is plug reversed
     if (x % 2 == 1)
     {
-        y = FOOT_STRIP_LENGTH - y;
+        y = (FOOT_STRIP_LENGTH - y) - 1;
     }
     #ifdef DEBUG
         Serial.print("pos x :");
