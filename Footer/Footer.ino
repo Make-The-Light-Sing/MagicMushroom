@@ -274,6 +274,7 @@ void wave()
             foot.setPixelColor(x, Color(r, g, b));
         }
         LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(ext.getInterval() / 8);
         // If effect have changed, then exit
         if (ext.getEffect() != EFFECT_WAVE)
         {

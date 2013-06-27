@@ -49,7 +49,7 @@ void loop()
 {
     switch(current_effect)
     {
-        case EFFECT_FIRE       : //fire();       break;
+        case EFFECT_FIRE       : fire();       break;
         case EFFECT_LIGHTNING  : lightning();     break;
         case EFFECT_COLORCHASE : // colorChase(); break;
         case EFFECT_RAINBOW1   : rainbowCycle1(); break;
@@ -191,6 +191,37 @@ void rainbowCycle2()
     }
 }
 
+void fire()
+{
+    int x, i;
+    uint16_t y;
+    struct CRGB color;
+    head.turnOff();    
+//    for(x = HEAD_NB_ROW - 1; x >= 0; x--)
+    x = random(4);
+    {
+        for(i = 16; i > 0; i--)
+        {
+            color.r = 63 * i / 16;
+            color.g = 63 * i / 16;
+            color.b = 63 * i / 16;
+            for (y = 0; y < head.getRowLength(x); y++)
+            {
+                head.setPixelColor(x, y, color);
+            }
+            LED.showRGB((byte*)leds, NUM_LEDS);
+            delay(getInterval() / 4);
+            for (y = 0; y < head.getRowLength(x); y++)
+            {
+                head.setPixelColor(x, y, Color(0,0,0));
+            }
+            if (current_effect != EFFECT_FIRE)
+            {
+                return;
+            }
+        }
+    }
+}
 
 void falling()
 {
