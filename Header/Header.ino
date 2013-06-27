@@ -11,10 +11,11 @@
 
 #define EFFECT_FIRE        0
 #define EFFECT_LIGHTNING   1
-#define EFFECT_COLORCHASE  2
-#define EFFECT_RAINBOW1    3
-#define EFFECT_RAINBOW2    4
-#define EFFECT_FALLING     5
+#define EFFECT_RAINBOW1    2
+#define EFFECT_RAINBOW2    3
+#define EFFECT_FALLING     4
+#define EFFECT_WAVE        5
+#define EFFECT_COLORCHASE  6
 
 #define NB_EFFECTS         6
 #define SLAVE              1
@@ -48,12 +49,13 @@ void loop()
 {
     switch(current_effect)
     {
-        case EFFECT_FIRE       : // fire();       break;
+        case EFFECT_FIRE       : //fire();       break;
         case EFFECT_LIGHTNING  : lightning();     break;
         case EFFECT_COLORCHASE : // colorChase(); break;
         case EFFECT_RAINBOW1   : rainbowCycle1(); break;
         case EFFECT_RAINBOW2   : rainbowCycle2(); break;
         case EFFECT_FALLING    : falling();       break;
+        case EFFECT_WAVE       : wave();          break;
     }
 }
 
@@ -189,6 +191,7 @@ void rainbowCycle2()
     }
 }
 
+
 void falling()
 {
     int x, i;
@@ -219,3 +222,56 @@ void falling()
         }
     }
 }
+
+void wave()
+{
+    byte r, g, b, y;
+    byte cycle = 8;
+    struct CRGB color;
+
+    for(int j = 0; j < (cycle * 4); j++)
+    {
+        color = getColor();
+        for(int x = 0; x < NUM_LEDS; x++)
+        {
+            y = (x + j) & 0x1f;
+            if (y >= (2 * cycle))
+            {
+                if (y >= (3 * cycle))
+                {
+                    r = 255 * ((4 * cycle) - y) / cycle;
+                    g = 255 * ((4 * cycle) - y) / cycle;
+                    b = 255 * ((4 * cycle) - y) / cycle;
+                }
+                else
+                {
+                    r = 255 * (y - (2 * cycle)) / cycle;
+                    g = 255 * (y - (2 * cycle)) / cycle;
+                    b = 255 * (y - (2 * cycle)) / cycle;
+                }
+            } else {
+                if (y >= cycle)
+                {
+                    r = color.r * ((2 * cycle) - y) / cycle;
+                    g = color.g * ((2 * cycle) - y) / cycle;
+                    b = color.b * ((2 * cycle) - y) / cycle;
+                }
+                else
+                {
+                    r = color.r * y / cycle;
+                    g = color.g * y / cycle;
+                    b = color.b * y / cycle;
+                }
+            }
+            head.setPixelColor(x, Color(r, g, b));
+        }
+        LED.showRGB((byte*)leds, NUM_LEDS);
+        delay(getInterval() / 8);
+        
+        // If effect have changed, then exit
+        if (current_effect != EFFECT_WAVE)
+        {
+            return;
+        }
+    }
+}    // function wave
